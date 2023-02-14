@@ -62,16 +62,30 @@ async function send() {
   }
 }
 
-async function getMessageList() {
-  const res = await api({
-    url: '/v1/chat',
-    method: 'get',
-  })
-  messageList.value = res.data.record
+async function getMessageList(flag?: any) {
+  if (flag)
+    loading.value = true
+  try {
+    const res = await api({
+      url: '/v1/chat',
+      method: 'get',
+    })
+    messageList.value = res.data.record
+  }
+  finally {
+    loading.value = false
+  }
 }
 
-onMounted(async () => {
-  await getMessageList()
+async function clearMessageList() {
+  await api({
+    url: '/v1/chat',
+    method: 'delete',
+  })
+}
+
+onMounted(() => {
+  getMessageList()
 })
 </script>
 
@@ -90,7 +104,7 @@ onMounted(async () => {
       />
     </template>
     <template v-else>
-      <div class="h-4/5 max-w-1080px w-4/5 bg relative overflow-y-auto">
+      <div class="h-4/5 max-w-1080px w-4/5 bg  overflow-y-auto relative">
         <div v-for="message in messageList" :key="message.id" class="message-box">
           <div>
             <span class="name">{{ message.sender }}</span>
@@ -98,17 +112,39 @@ onMounted(async () => {
           </div>
           <div class="message" v-html="message.content" />
         </div>
-        <div class="send-box">
+      </div>
+      <div class="send-box">
+        <n-input-group class="w-full mx-auto flex justify-center">
           <n-input
             v-model:value="message"
-            class="w-4/5 mx-auto"
+            type="textarea"
             size="large"
             round
             :loading="loading"
             :disabled="loading"
-            @keyup.enter="send"
+            clearable
+            :autosize="{
+              minRows: 1,
+              maxRows: 3,
+            }"
           />
-        </div>
+          <n-button size="large" :disabled="loading" @click="send">
+            Send
+          </n-button>
+          <n-button size="large" :disabled="loading" @click="getMessageList('loding')">
+            Refresh
+          </n-button>
+          <n-popconfirm
+            @positive-click="clearMessageList"
+          >
+            <template #trigger>
+              <n-button size="large" :disabled="loading">
+                Clear
+              </n-button>
+            </template>
+            Are you sure?。
+          </n-popconfirm>
+        </n-input-group>
       </div>
     </template>
   </div>
@@ -119,6 +155,7 @@ onMounted(async () => {
   background-color: rgb(54,57,63);
   border-radius: 20px;
   padding: 20px;
+  margin-bottom: 40px;
 }
 .name{
   font-size: 1rem;

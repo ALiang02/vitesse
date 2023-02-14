@@ -12,6 +12,7 @@ declare module '@vue/runtime-core' {
     NInput: typeof import('naive-ui')['NInput']
     NInputGroup: typeof import('naive-ui')['NInputGroup']
     NNotificationProvider: typeof import('naive-ui')['NNotificationProvider']
+    NPopconfirm: typeof import('naive-ui')['NPopconfirm']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TheCounter: typeof import('./components/TheCounter.vue')['default']
