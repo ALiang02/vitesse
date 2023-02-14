@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { AxiosInstance } from 'axios'
 import axios from 'axios'
 import dayjs from 'dayjs'
-const user = useStorage('user', { name: '', signed: false })
+const user = useStorage('user', { name: '', signed: false, isSessionExist: false })
 const message = ref('')
 const loading = ref(false)
+
 interface Message {
   id: string
   sender: string
@@ -12,21 +14,24 @@ interface Message {
 }
 const messageList = shallowRef<Array<Message>>([])
 const notification = useNotification()
-const api = axios.create({
-  headers: {
-    'X-Username': user.value.name,
-  },
-  timeout: 20000,
-})
-api.interceptors.response.use((response) => {
+let api: AxiosInstance
+watchEffect(() => {
+  api = axios.create({
+    headers: {
+      'X-Username': user.value.name,
+    },
+    timeout: 20000,
+  })
+  api.interceptors.response.use((response) => {
   // 2xx 范围内的状态码都会触发该函数。
   // 对响应数据做点什么
-  return response
-}, (error) => {
-  // 超出 2xx 范围的状态码都会触发该函数。
-  // 对响应错误做点什么
-  notification.error({ content: error.message, duration: 3000 })
-  return Promise.reject(error)
+    return response
+  }, (error) => {
+    // 超出 2xx 范围的状态码都会触发该函数。
+    // 对响应错误做点什么
+    notification.error({ content: error.message, duration: 3000 })
+    return Promise.reject(error)
+  })
 })
 
 function login() {
@@ -35,6 +40,7 @@ function login() {
     loading.value = false
     if (user.value.name) {
       user.value.signed = true
+      user.value.isSessionExist = true
       notification.success({ content: `Hello ${user.value.name}, welcome to chat!`, duration: 5000 })
     }
     else { notification.error({ content: 'You can\'t submit a null name', duration: 3000 }) }
@@ -82,10 +88,12 @@ async function clearMessageList() {
     url: '/v1/chat',
     method: 'delete',
   })
+  user.value.isSessionExist = false
 }
 
 onMounted(() => {
-  getMessageList()
+  if (user.value.signed && user.value.isSessionExist)
+    getMessageList()
 })
 </script>
 
