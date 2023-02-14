@@ -2,17 +2,17 @@
 import type { AxiosInstance } from 'axios'
 import axios from 'axios'
 import dayjs from 'dayjs'
-const user = useStorage('user', { name: '', signed: false, isSessionExist: false })
-const message = ref('')
-const loading = ref(false)
-
 interface Message {
   id: string
   sender: string
   content: string
   timestamp: number
 }
+
+const message = ref('')
+const loading = ref(false)
 const messageList = shallowRef<Array<Message>>([])
+const user = useStorage('user', { name: '', signed: false })
 const notification = useNotification()
 let api: AxiosInstance
 watchEffect(() => {
@@ -29,7 +29,8 @@ watchEffect(() => {
   }, (error) => {
     // 超出 2xx 范围的状态码都会触发该函数。
     // 对响应错误做点什么
-    notification.error({ content: error.message, duration: 3000 })
+    const error_msg = error?.response?.data?.error || error.message
+    notification.error({ content: error_msg, duration: 3000 })
     return Promise.reject(error)
   })
 })
@@ -40,14 +41,13 @@ function login() {
     loading.value = false
     if (user.value.name) {
       user.value.signed = true
-      user.value.isSessionExist = true
       notification.success({ content: `Hello ${user.value.name}, welcome to chat!`, duration: 5000 })
     }
-    else { notification.error({ content: 'You can\'t submit a null name', duration: 3000 }) }
+    else { notification.error({ content: 'You can\'t submit a null name', duration: 5000 }) }
   }, 1000)
 }
 async function send() {
-  if (message.value && !loading.value) {
+  if (message.value) {
     loading.value = true
     try {
       await api({
@@ -59,8 +59,6 @@ async function send() {
       })
       await getMessageList()
       message.value = ''
-    }
-    catch (error) {
     }
     finally {
       loading.value = false
@@ -88,11 +86,11 @@ async function clearMessageList() {
     url: '/v1/chat',
     method: 'delete',
   })
-  user.value.isSessionExist = false
+  messageList.value = []
 }
 
 onMounted(() => {
-  if (user.value.signed && user.value.isSessionExist)
+  if (user.value.signed)
     getMessageList()
 })
 </script>
@@ -139,7 +137,7 @@ onMounted(() => {
           <n-button size="large" :disabled="loading" @click="send">
             Send
           </n-button>
-          <n-button size="large" :disabled="loading" @click="getMessageList('loding')">
+          <n-button size="large" :disabled="loading" @click="getMessageList('loading')">
             Refresh
           </n-button>
           <n-popconfirm
