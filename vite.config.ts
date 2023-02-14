@@ -19,6 +19,11 @@ import VueMacros from 'unplugin-vue-macros/vite'
 import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 
 export default defineConfig({
+  server: {
+    proxy: {
+      '/v1': 'http://127.0.0.1:3000/',
+    },
+  },
   resolve: {
     alias: {
       '~/': `${path.resolve(__dirname, 'src')}/`,

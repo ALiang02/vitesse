@@ -2,6 +2,7 @@
 // https://github.com/vueuse/head
 // you can use this to manipulate the document head in any components,
 // they will be rendered correctly in the html results with vite-ssg
+import { darkTheme } from 'naive-ui'
 useHead({
   title: 'Vitesse',
   meta: [
@@ -19,8 +20,13 @@ useHead({
     },
   ],
 })
+toggleDark(true)
 </script>
 
 <template>
-  <RouterView />
+  <n-config-provider :theme="darkTheme" h-full w-full>
+    <n-notification-provider placement:="top">
+      <RouterView />
+    </n-notification-provider>
+  </n-config-provider>
 </template>
