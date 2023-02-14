@@ -1,3 +1,3 @@
 <template>
-  vitesse
+  <n-button>naive-ui</n-button>
 </template>
