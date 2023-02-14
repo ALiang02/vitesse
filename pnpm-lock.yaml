@@ -16,6 +16,7 @@ specifiers:
   critters: ^0.0.16
   cross-env: ^7.0.3
   cypress: ^12.3.0
+  dayjs: ^1.11.7
   eslint: ^8.32.0
   eslint-plugin-cypress: ^2.12.1
   https-localhost: ^4.7.1
@@ -74,6 +75,7 @@ devDependencies:
   critters: 0.0.16
   cross-env: 7.0.3
   cypress: 12.3.0
+  dayjs: 1.11.7
   eslint: 8.32.0
   eslint-plugin-cypress: 2.12.1_eslint@8.32.0
   https-localhost: 4.7.1
@@ -4008,7 +4010,7 @@ packages:
       cli-table3: 0.6.2
       commander: 5.1.0
       common-tags: 1.8.2
-      dayjs: 1.11.4
+      dayjs: 1.11.7
       debug: 4.3.4_supports-color@8.1.1
       enquirer: 2.3.6
       eventemitter2: 6.4.7
@@ -4065,8 +4067,8 @@ packages:
     engines: {node: '>=0.11'}
     dev: true
 
-  /dayjs/1.11.4:
-    resolution: {integrity: sha512-Zj/lPM5hOvQ1Bf7uAvewDaUcsJoI6JmNqmHhHl3nyumwe0XHwt8sWdOVAPACJzCebL8gQCi+K49w7iKWnGwX9g==}
+  /dayjs/1.11.7:
+    resolution: {integrity: sha512-+Yw9U6YO5TQohxLcIkrXBeY73WP3ejHWVvx8XCk3gxvQDCTEmS48ZrSZCKciI7Bhl/uCMyxYtE9UqRILmFphkQ==}
     dev: true
 
   /de-indent/1.0.2:

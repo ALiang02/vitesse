@@ -1,9 +1,34 @@
 <script setup lang="ts">
 import axios from 'axios'
+import dayjs from 'dayjs'
 const user = useStorage('user', { name: '', signed: false })
 const message = ref('')
 const loading = ref(false)
+interface Message {
+  id: string
+  sender: string
+  content: string
+  timestamp: number
+}
+const messageList = shallowRef<Array<Message>>([])
 const notification = useNotification()
+const api = axios.create({
+  headers: {
+    'X-Username': user.value.name,
+  },
+  timeout: 20000,
+})
+api.interceptors.response.use((response) => {
+  // 2xx 范围内的状态码都会触发该函数。
+  // 对响应数据做点什么
+  return response
+}, (error) => {
+  // 超出 2xx 范围的状态码都会触发该函数。
+  // 对响应错误做点什么
+  notification.error({ content: error.message, duration: 3000 })
+  return Promise.reject(error)
+})
+
 function login() {
   loading.value = true
   setTimeout(() => {
@@ -15,32 +40,39 @@ function login() {
     else { notification.error({ content: 'You can\'t submit a null name', duration: 3000 }) }
   }, 1000)
 }
-function send() {
-  if (message.value) {
+async function send() {
+  if (message.value && !loading.value) {
     loading.value = true
-    axios({
-      method: 'post',
-      url: '/v1/chat',
-      headers: {
-        'X-Username': user.value.name,
-      },
-      data: {
-        message: message.value,
-      },
-    }).finally(() => {
+    try {
+      await api({
+        url: '/v1/chat',
+        method: 'post',
+        data: {
+          message: message.value,
+        },
+      })
+      await getMessageList()
+      message.value = ''
+    }
+    catch (error) {
+    }
+    finally {
       loading.value = false
-    })
+    }
   }
 }
-const messageList = ref([{
-  name: 'bot',
-  content: `Hello ${user.value.name}, welcome to chat!`,
-  order: 0,
-}, {
-  name: user.value.name,
-  content: '你好！',
-  order: 1,
-}])
+
+async function getMessageList() {
+  const res = await api({
+    url: '/v1/chat',
+    method: 'get',
+  })
+  messageList.value = res.data.record
+}
+
+onMounted(async () => {
+  await getMessageList()
+})
 </script>
 
 <template>
@@ -48,20 +80,23 @@ const messageList = ref([{
     <template v-if="!user.signed">
       <n-input
         v-model:value="user.name"
-        :loading="loading" class="w-1/2!" placeholder="Please Input Your Name" :allow-input="(value: string) =>
-          !value.startsWith(' ') && !value.endsWith(' ')" @keyup.enter="login"
+        :loading="loading"
+        class="w-1/2!"
+        placeholder="Please Input Your Name"
+        :allow-input="(value: string) =>
+          !value.startsWith(' ') && !value.endsWith(' ')"
+        :disabled="loading"
+        @keyup.enter="login"
       />
     </template>
     <template v-else>
       <div class="h-4/5 max-w-1080px w-4/5 bg relative overflow-y-auto">
-        <div v-for="message in messageList" :key="message.order" class="message-box">
+        <div v-for="message in messageList" :key="message.id" class="message-box">
           <div>
-            <span class="name">{{ message.name }}</span>
-            <span class="time">2022/09/02 11:48</span>
+            <span class="name">{{ message.sender }}</span>
+            <span class="time">{{ dayjs(message.timestamp).format('YYYY/MM/DD HH:mm:ss') }}</span>
           </div>
-          <div class="message">
-            {{ message.content }}
-          </div>
+          <div class="message" v-html="message.content" />
         </div>
         <div class="send-box">
           <n-input
@@ -69,6 +104,8 @@ const messageList = ref([{
             class="w-4/5 mx-auto"
             size="large"
             round
+            :loading="loading"
+            :disabled="loading"
             @keyup.enter="send"
           />
         </div>
@@ -99,10 +136,11 @@ const messageList = ref([{
   margin: 20px 0;
 }
 .send-box{
-position: sticky;
+position: fixed;
 left: 0;
 right: 0;
 width: 80%;
+max-width: 1080px;
 bottom: 20px;
 margin: 0 auto;
 }
