@@ -4,9 +4,9 @@
 // they will be rendered correctly in the html results with vite-ssg
 import { darkTheme } from 'naive-ui'
 useHead({
-  title: 'Vitesse',
+  title: 'Chat',
   meta: [
-    { name: 'description', content: 'Opinionated Vite Starter Template' },
+    { name: 'description', content: 'OpenAi Chat' },
     {
       name: 'theme-color',
       content: computed(() => isDark.value ? '#00aba9' : '#ffffff'),
