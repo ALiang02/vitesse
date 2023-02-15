@@ -2,6 +2,7 @@
 import type { AxiosInstance } from 'axios'
 import axios from 'axios'
 import dayjs from 'dayjs'
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 interface Message {
   id: string
   sender: string
@@ -14,11 +15,14 @@ const loading = ref(false)
 const messageList = shallowRef<Array<Message>>([])
 const user = useStorage('user', { name: '', signed: false })
 const notification = useNotification()
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const lgAndSmaller = breakpoints.smallerOrEqual('md')
+const size = computed(() => lgAndSmaller.value ? 'small' : 'large')
 let api: AxiosInstance
 watchEffect(() => {
   api = axios.create({
     headers: {
-      'X-Username': user.value.name,
+      'X-Username': encodeURIComponent(user.value.name),
     },
     timeout: 20000,
   })
@@ -124,28 +128,43 @@ onMounted(() => {
           <n-input
             v-model:value="message"
             type="textarea"
-            size="large"
+            :size="size"
             round
             :loading="loading"
             :disabled="loading"
             clearable
             :autosize="{
               minRows: 1,
-              maxRows: 3,
+              maxRows: lgAndSmaller ? 2 : 3,
             }"
           />
-          <n-button size="large" :disabled="loading" @click="send">
-            Send
+          <n-button :size="size" :disabled="loading" @click="send">
+            <template v-if="lgAndSmaller" #icon>
+              <div class="i-carbon-send" />
+            </template>
+            <template v-else #default>
+              Send
+            </template>
           </n-button>
-          <n-button size="large" :disabled="loading" @click="getMessageList('loading')">
-            Refresh
+          <n-button :size="size" :disabled="loading" @click="getMessageList('loading')">
+            <template v-if="lgAndSmaller" #icon>
+              <div class="i-carbon-reset" />
+            </template>
+            <template v-else #default>
+              Refresh
+            </template>
           </n-button>
           <n-popconfirm
             @positive-click="clearMessageList"
           >
             <template #trigger>
-              <n-button size="large" :disabled="loading">
-                Clear
+              <n-button :size="size" :disabled="loading">
+                <template v-if="lgAndSmaller" #icon>
+                  <div class="i-carbon-clean" />
+                </template>
+                <template v-else #default>
+                  Clear
+                </template>
               </n-button>
             </template>
             Are you sure?。
