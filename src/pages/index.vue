@@ -26,15 +26,21 @@ watchEffect(() => {
     },
     timeout: 20000,
   })
+  api.interceptors.request.use((config) => {
+    loading.value = true
+    return config
+  })
   api.interceptors.response.use((response) => {
   // 2xx 范围内的状态码都会触发该函数。
   // 对响应数据做点什么
+    loading.value = false
     return response
   }, (error) => {
     // 超出 2xx 范围的状态码都会触发该函数。
     // 对响应错误做点什么
+    loading.value = false
     const error_msg = error?.response?.data?.error || error.message
-    notification.error({ content: error_msg, duration: 3000 })
+    notification.error({ content: error_msg, duration: 5000 })
     return Promise.reject(error)
   })
 })
@@ -52,44 +58,19 @@ function login() {
 }
 async function send() {
   if (message.value) {
-    loading.value = true
-    try {
-      await api({
-        url: '/v1/chat',
-        method: 'post',
-        data: {
-          message: message.value,
-        },
-      })
-      await getMessageList()
-      message.value = ''
-    }
-    finally {
-      loading.value = false
-    }
+    await api.post('/v1/chat', { message: message.value })
+    await getMessageList()
+    message.value = ''
   }
 }
 
-async function getMessageList(flag?: any) {
-  if (flag)
-    loading.value = true
-  try {
-    const res = await api({
-      url: '/v1/chat',
-      method: 'get',
-    })
-    messageList.value = res.data.record
-  }
-  finally {
-    loading.value = false
-  }
+async function getMessageList() {
+  const res = await api.get('/v1/chat')
+  messageList.value = res.data.record
 }
 
 async function clearMessageList() {
-  await api({
-    url: '/v1/chat',
-    method: 'delete',
-  })
+  await api.delete('/v1/chat')
   messageList.value = []
 }
 
@@ -117,7 +98,7 @@ onMounted(() => {
       <div class="h-4/5 max-w-1080px w-4/5 bg  overflow-y-auto relative">
         <div v-for="message in messageList" :key="message.id" class="message-box">
           <div>
-            <span class="name">{{ message.sender }}</span>
+            <span class="name">{{ decodeURIComponent(message.sender) }}</span>
             <span class="time">{{ dayjs(message.timestamp).format('YYYY/MM/DD HH:mm:ss') }}</span>
           </div>
           <div class="message" v-html="message.content" />
@@ -146,7 +127,7 @@ onMounted(() => {
               Send
             </template>
           </n-button>
-          <n-button :size="size" :disabled="loading" @click="getMessageList('loading')">
+          <n-button :size="size" :disabled="loading" @click="getMessageList">
             <template v-if="lgAndSmaller" #icon>
               <div class="i-carbon-reset" />
             </template>
@@ -167,7 +148,7 @@ onMounted(() => {
                 </template>
               </n-button>
             </template>
-            Are you sure?。
+            Are you sure?
           </n-popconfirm>
         </n-input-group>
       </div>

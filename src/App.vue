@@ -25,7 +25,7 @@ toggleDark(true)
 
 <template>
   <n-config-provider :theme="darkTheme" h-full w-full>
-    <n-notification-provider placement:="top">
+    <n-notification-provider placement="top">
       <RouterView />
     </n-notification-provider>
   </n-config-provider>
