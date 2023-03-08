@@ -15,6 +15,10 @@
     "up": "taze major -I"
   },
   "dependencies": {
+    "@tiptap/core": "2.0.0-beta.220",
+    "@tiptap/pm": "2.0.0-beta.220",
+    "@tiptap/starter-kit": "2.0.0-beta.220",
+    "@tiptap/vue-3": "2.0.0-beta.220",
     "@unocss/reset": "^0.48.4",
     "@vueuse/core": "^9.11.0",
     "@vueuse/head": "^1.0.22",
